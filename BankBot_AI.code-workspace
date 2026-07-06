@@ -1,0 +1,53 @@
+{
+  "folders": [
+    {
+      "name": "🏦 BankBot AI Agent",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.fontSize": 14,
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true,
+    "editor.minimap.enabled": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "workbench.colorTheme": "Dark Modern",
+    "workbench.iconTheme": "vs-seti",
+    "files.associations": {
+      "*.html": "html"
+    },
+    "emmet.includeLanguages": {
+      "html": "html"
+    },
+    "html.format.indentInnerHtml": true,
+    "html.format.wrapLineLength": 0,
+    "livePreview.portNumber": 3000,
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.html": "${capture}.docx, ${capture}.md"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.live-server",
+      "ritwickdey.liveserver",
+      "esbenp.prettier-vscode",
+      "formulahendry.auto-rename-tag",
+      "ms-vscode.wordcount",
+      "christian-kohler.path-intellisense"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🚀 Open BankBot in Browser",
+        "type": "chrome",
+        "request": "launch",
+        "file": "${workspaceFolder}/banking_ai_agent.html"
+      }
+    ]
+  }
+}

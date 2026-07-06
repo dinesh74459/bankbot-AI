@@ -1,0 +1,2969 @@
+<!DOCTYPE html>
+<!--
+  =============================================================
+  BANKING AI AGENT - CHATBOT SYSTEM
+  =============================================================
+  Project   : BankBot AI Agent
+  Version   : 2.1.0
+  Created   : June 13, 2026
+  Updated   : June 19, 2026
+  Author    : DEXPATH Development Team
+  Purpose   : AI-powered banking assistant for customers,
+              users, and bank employees
+  =============================================================
+-->
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BankBot AI Agent | Secure Banking Assistant</title>
+
+    <!-- ======================================================
+       GOOGLE FONTS — Load Inter for clean, modern UI text
+  ====================================================== -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+      /* ===========================================================
+       ROOT VARIABLES
+       Central design tokens — change here to restyle everything
+    =========================================================== */
+      :root {
+        --primary: #1a3c6e;
+        /* Deep navy — main brand color */
+        --primary-light: #2b5aa0;
+        /* Lighter navy for hover states */
+        --accent: #f0a500;
+        /* Gold accent — CTAs, highlights */
+        --accent-dark: #c8850a;
+        /* Darker gold for hover */
+        --bg: #f4f6fb;
+        /* Page background (light grey-blue) */
+        --card: #ffffff;
+        /* Card / panel background */
+        --text: #1c2231;
+        /* Primary text */
+        --text-muted: #6b7280;
+        /* Secondary / placeholder text */
+        --border: #dde3f0;
+        /* Subtle borders */
+        --success: #16a34a;
+        /* Confirmation / success green */
+        --error: #dc2626;
+        /* Error / alert red */
+        --warning: #d97706;
+        /* Warning amber */
+        --bot-bubble: #eef2ff;
+        /* Bot chat bubble background */
+        --user-bubble: #1a3c6e;
+        /* User chat bubble background */
+        --shadow: 0 4px 24px rgba(26, 60, 110, 0.10);
+        --radius: 14px;
+        --radius-sm: 8px;
+      }
+
+      /* ===========================================================
+       RESET & BASE
+    =========================================================== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ===========================================================
+       TOP NAVIGATION BAR
+    =========================================================== */
+      header {
+        background: var(--primary);
+        color: #fff;
+        padding: 0 28px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+      }
+
+      /* Bank logo / brand */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      /* Animated pulse dot to indicate "live" service */
+      .brand-dot {
+        width: 10px;
+        height: 10px;
+        background: #4ade80;
+        border-radius: 50%;
+        animation: pulse 1.8s infinite;
+      }
+
+      @keyframes pulse {
+
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: 0.5;
+          transform: scale(1.4);
+        }
+      }
+
+      /* Navigation links */
+      .nav-links {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .nav-links button {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 500;
+        transition: background 0.2s, border-color 0.2s;
+      }
+
+      .nav-links button:hover,
+      .nav-links button.active {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      /* Role badge shown top-right */
+      .role-badge {
+        background: var(--accent);
+        color: #1c1c1c;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .role-badge:hover {
+        background: var(--accent-dark);
+        color: #fff;
+      }
+
+      /* ===========================================================
+       MAIN LAYOUT — two-column on desktop
+    =========================================================== */
+      main {
+        display: flex;
+        flex: 1;
+        gap: 20px;
+        padding: 24px;
+        max-width: 1300px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      /* ----------------------------------------------------------
+       LEFT SIDEBAR — role switcher + quick-action cards
+    ---------------------------------------------------------- */
+      .sidebar {
+        width: 280px;
+        min-width: 240px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .card-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+      }
+
+      /* Role switcher buttons in sidebar */
+      .role-btn {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 0.88rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: left;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+      }
+
+      .role-btn:hover {
+        border-color: var(--primary-light);
+        background: #eef2ff;
+      }
+
+      .role-btn.selected {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .role-btn.selected .role-icon {
+        filter: brightness(0) invert(1);
+      }
+
+      /* Quick action chips */
+      .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .qa-btn {
+        padding: 10px 14px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 0.83rem;
+        cursor: pointer;
+        color: var(--text);
+        text-align: left;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .qa-btn:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+
+      /* Stats mini-cards */
+      .stat-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+
+      .stat-box {
+        flex: 1;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        text-align: center;
+        border: 1px solid var(--border);
+      }
+
+      .stat-box .stat-val {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .stat-box .stat-lbl {
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* ===========================================================
+       RIGHT PANEL — chat window
+    =========================================================== */
+      .chat-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        min-height: 0;
+      }
+
+      /* Chat header row */
+      .chat-header {
+        background: linear-gradient(135deg, var(--primary) 60%, var(--primary-light));
+        color: #fff;
+        padding: 16px 22px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      /* Bot avatar circle */
+      .bot-avatar {
+        width: 44px;
+        height: 44px;
+        background: var(--accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+      }
+
+      .chat-header-info h2 {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .chat-header-info p {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 2px;
+      }
+
+      /* Status indicator dot in chat header */
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #4ade80;
+        border-radius: 50%;
+        margin-right: 5px;
+        animation: pulse 1.8s infinite;
+      }
+
+      /* Action buttons in chat header */
+      .chat-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+
+      .chat-actions button {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .chat-actions button:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
+
+      /* ----------------------------------------------------------
+       CHAT MESSAGES AREA
+    ---------------------------------------------------------- */
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        scroll-behavior: smooth;
+      }
+
+      /* Thin custom scrollbar */
+      .chat-messages::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+
+      /* Individual message row */
+      .msg-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        animation: slideIn 0.25s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .msg-row.user {
+        flex-direction: row-reverse;
+      }
+
+      /* Small avatar icons beside each message */
+      .msg-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .bot-av {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .user-av {
+        background: var(--accent);
+        color: #1c1c1c;
+      }
+
+      /* Chat bubble */
+      .bubble {
+        max-width: 72%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 0.88rem;
+        line-height: 1.6;
+        position: relative;
+      }
+
+      /* Bot bubble — left side, light background */
+      .msg-row.bot .bubble {
+        background: var(--bot-bubble);
+        border-bottom-left-radius: 4px;
+        color: var(--text);
+      }
+
+      /* User bubble — right side, navy background */
+      .msg-row.user .bubble {
+        background: var(--user-bubble);
+        color: #fff;
+        border-bottom-right-radius: 4px;
+      }
+
+      /* Timestamp below bubble */
+      .msg-time {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+        text-align: right;
+      }
+
+      .msg-row.bot .msg-time {
+        text-align: left;
+      }
+
+      /* Rich content inside bot bubbles */
+      .bubble h4 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .bubble ul {
+        padding-left: 18px;
+        margin-top: 6px;
+      }
+
+      .bubble ul li {
+        margin-bottom: 4px;
+      }
+
+      /* Info-box inside a bubble (e.g. balance display) */
+      .info-box {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        margin-top: 10px;
+      }
+
+      .info-box .info-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        margin-bottom: 6px;
+      }
+
+      .info-box .info-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .info-box .info-label {
+        color: var(--text-muted);
+      }
+
+      .info-box .info-value {
+        font-weight: 600;
+      }
+
+      .info-box .info-value.green {
+        color: var(--success);
+      }
+
+      .info-box .info-value.red {
+        color: var(--error);
+      }
+
+      .info-box .info-value.gold {
+        color: var(--warning);
+      }
+
+      /* Status pill badges */
+      .pill {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+
+      .pill.green {
+        background: #dcfce7;
+        color: var(--success);
+      }
+
+      .pill.red {
+        background: #fee2e2;
+        color: var(--error);
+      }
+
+      .pill.yellow {
+        background: #fef9c3;
+        color: var(--warning);
+      }
+
+      .pill.blue {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      /* Action buttons inside bot bubbles */
+      .bubble-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .bub-btn {
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1.5px solid var(--primary);
+        background: transparent;
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .bub-btn:hover {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .bub-btn.accent {
+        border-color: var(--accent);
+        color: var(--accent-dark);
+      }
+
+      .bub-btn.accent:hover {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      /* Typing indicator (three bouncing dots) */
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px 16px;
+        background: var(--bot-bubble);
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+        width: fit-content;
+      }
+
+      .typing-indicator span {
+        width: 7px;
+        height: 7px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        animation: bounce 1.2s infinite;
+      }
+
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes bounce {
+
+        0%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+
+        40% {
+          transform: translateY(-6px);
+        }
+      }
+
+      /* ----------------------------------------------------------
+       SUGGESTION CHIPS — quick reply pills above input
+    ---------------------------------------------------------- */
+      .suggestions {
+        padding: 10px 20px 6px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--border);
+        background: #fafbff;
+      }
+
+      .suggestion-chip {
+        padding: 6px 14px;
+        background: var(--card);
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        font-size: 0.78rem;
+        cursor: pointer;
+        color: var(--text);
+        transition: all 0.18s;
+        white-space: nowrap;
+      }
+
+      .suggestion-chip:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+
+      /* ----------------------------------------------------------
+       CHAT INPUT ROW
+    ---------------------------------------------------------- */
+      .chat-input-row {
+        padding: 14px 20px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        background: var(--card);
+        border-top: 1px solid var(--border);
+      }
+
+      /* Attachment / emoji buttons left of input */
+      .input-tools {
+        display: flex;
+        gap: 4px;
+      }
+
+      .tool-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+
+      .tool-btn:hover {
+        background: var(--border);
+      }
+
+      /* Main textarea */
+      #chatInput {
+        flex: 1;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-size: 0.88rem;
+        font-family: 'Inter', sans-serif;
+        resize: none;
+        min-height: 40px;
+        max-height: 120px;
+        outline: none;
+        transition: border-color 0.2s;
+        line-height: 1.5;
+      }
+
+      #chatInput:focus {
+        border-color: var(--primary-light);
+      }
+
+      /* Send button */
+      #sendBtn {
+        width: 42px;
+        height: 42px;
+        background: var(--primary);
+        border: none;
+        border-radius: var(--radius-sm);
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      #sendBtn:hover {
+        background: var(--primary-light);
+      }
+
+      #sendBtn:active {
+        transform: scale(0.93);
+      }
+
+      /* ===========================================================
+       MODAL — Role Switcher / Login overlay
+    =========================================================== */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.open {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: 32px;
+        width: 380px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        animation: modalIn 0.2s ease;
+      }
+
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: scale(0.93);
+        }
+
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .modal h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .modal p {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+
+      .modal label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text-muted);
+      }
+
+      .modal input,
+      .modal select {
+        width: 100%;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 9px 12px;
+        font-size: 0.87rem;
+        margin-bottom: 14px;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .modal input:focus,
+      .modal select:focus {
+        border-color: var(--primary);
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 9px 22px;
+        font-size: 0.87rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-light);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 9px 18px;
+        font-size: 0.87rem;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+
+      .btn-ghost:hover {
+        border-color: var(--text-muted);
+      }
+
+      /* ===========================================================
+       ALERT BANNER (Error / Warning notifications)
+    =========================================================== */
+      #alertBanner {
+        display: none;
+        position: fixed;
+        top: 72px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 150;
+        padding: 12px 22px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.25s ease;
+      }
+
+      #alertBanner.error {
+        background: #fee2e2;
+        color: var(--error);
+        border: 1px solid #fca5a5;
+      }
+
+      #alertBanner.success {
+        background: #dcfce7;
+        color: var(--success);
+        border: 1px solid #86efac;
+      }
+
+      #alertBanner.warning {
+        background: #fef9c3;
+        color: var(--warning);
+        border: 1px solid #fde047;
+      }
+
+      /* ===========================================================
+       LOGIN SCREEN — full-page overlay shown before app loads
+    =========================================================== */
+
+      /* The login screen covers the entire viewport */
+      #loginScreen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #0f2044 0%, #1a3c6e 60%, #2b5aa0 100%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      /* Card that holds the login form */
+      .login-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 42px 40px 36px;
+        width: 380px;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+        animation: modalIn 0.35s ease;
+      }
+
+      /* Bank logo + title at top of login */
+      .login-logo {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .login-logo .logo-icon {
+        font-size: 2.8rem;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .login-logo h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: -0.02em;
+      }
+
+      .login-logo p {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      /* Role selector tabs at top of form */
+      .login-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 22px;
+        background: var(--bg);
+        border-radius: 10px;
+        padding: 4px;
+      }
+
+      .login-tab {
+        flex: 1;
+        padding: 8px 4px;
+        border: none;
+        background: transparent;
+        border-radius: 7px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.2s;
+      }
+
+      .login-tab.active {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(26,60,110,0.3);
+      }
+
+      /* Input field labels */
+      .login-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+        margin-top: 14px;
+      }
+
+      /* Input fields */
+      .login-input {
+        width: 100%;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 11px 14px;
+        font-size: 0.87rem;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        color: var(--text);
+      }
+
+      .login-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26,60,110,0.1);
+      }
+
+      /* Error message under inputs */
+      #loginError {
+        font-size: 0.78rem;
+        color: var(--error);
+        margin-top: 10px;
+        display: none;
+        text-align: center;
+        background: #fee2e2;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+      }
+
+      /* Big login button */
+      .login-btn {
+        width: 100%;
+        margin-top: 22px;
+        padding: 13px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+        letter-spacing: 0.01em;
+      }
+
+      .login-btn:hover  { background: var(--primary-light); }
+      .login-btn:active { transform: scale(0.98); }
+
+      /* Demo credentials hint below button */
+      .login-hint {
+        margin-top: 18px;
+        background: #f0f4ff;
+        border: 1px solid #c7d4f5;
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-size: 0.74rem;
+        color: #3b5bcc;
+        line-height: 1.7;
+      }
+
+      .login-hint strong { display: block; margin-bottom: 2px; color: var(--primary); }
+
+      /* Shake animation — plays when wrong password entered */
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%       { transform: translateX(-8px); }
+        40%       { transform: translateX(8px); }
+        60%       { transform: translateX(-6px); }
+        80%       { transform: translateX(6px); }
+      }
+
+      /* ---- Show/Hide password wrapper ---- */
+      .pass-wrap { position: relative; }
+      .pass-wrap .login-input { padding-right: 44px; }
+      .toggle-pass {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none; cursor: pointer;
+        font-size: 1rem; color: var(--text-muted);
+        padding: 0; line-height: 1;
+      }
+
+      /* ---- Remember Me row ---- */
+      .remember-row {
+        display: flex; align-items: center; gap: 8px;
+        margin-top: 14px; font-size: 0.8rem; color: var(--text-muted);
+      }
+      .remember-row input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
+
+      /* ---- Lockout warning inside login card ---- */
+      #lockoutMsg {
+        display: none; margin-top: 10px; text-align: center;
+        font-size: 0.8rem; font-weight: 600;
+        background: #fef9c3; color: var(--warning);
+        border: 1px solid #fde047;
+        padding: 9px 12px; border-radius: var(--radius-sm);
+      }
+
+      /* ---- OTP Screen (shown after password step) ---- */
+      #otpScreen {
+        display: none; /* shown after successful password */
+      }
+      #otpScreen .otp-title {
+        text-align: center; margin-bottom: 18px;
+      }
+      #otpScreen .otp-title p {
+        font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;
+      }
+      /* Six individual OTP digit boxes */
+      .otp-boxes {
+        display: flex; gap: 8px; justify-content: center;
+        margin-bottom: 18px;
+      }
+      .otp-box {
+        width: 44px; height: 52px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        text-align: center; font-size: 1.4rem; font-weight: 700;
+        outline: none; transition: border-color 0.2s;
+        color: var(--primary);
+      }
+      .otp-box:focus { border-color: var(--primary); }
+      .otp-resend {
+        text-align: center; font-size: 0.77rem;
+        color: var(--text-muted); margin-bottom: 6px;
+      }
+      .otp-resend span {
+        color: var(--primary); font-weight: 600;
+        cursor: pointer; text-decoration: underline;
+      }
+
+      /* ---- Session timeout warning bar ---- */
+      #sessionWarning {
+        display: none;
+        position: fixed; bottom: 20px; left: 50%;
+        transform: translateX(-50%);
+        background: #1c2231; color: #fff;
+        padding: 13px 24px; border-radius: 30px;
+        font-size: 0.85rem; font-weight: 500;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        z-index: 5000; white-space: nowrap;
+        animation: slideIn 0.3s ease;
+      }
+      #sessionWarning button {
+        margin-left: 14px; padding: 5px 14px;
+        background: var(--accent); color: #1c1c1c;
+        border: none; border-radius: 20px;
+        font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      }
+
+      /* ---- Dark Mode overrides ---- */
+      body.dark {
+        --bg:         #0f1724;
+        --card:       #1a2234;
+        --text:       #e2e8f0;
+        --text-muted: #8899bb;
+        --border:     #2a3a55;
+        --bot-bubble: #1e2d45;
+        --user-bubble:#2b5aa0;
+        --shadow:     0 4px 24px rgba(0,0,0,0.4);
+      }
+      body.dark header  { background: #0a1628; }
+      body.dark .login-card { background: #1a2234; color: #e2e8f0; }
+      body.dark .login-logo h1 { color: #7ba8f0; }
+      body.dark .login-input { background: #0f1724; color: #e2e8f0; border-color: #2a3a55; }
+      body.dark .login-hint  { background: #1e2d45; border-color: #2a3a55; color: #7ba8f0; }
+      body.dark .login-tabs  { background: #0f1724; }
+      body.dark #chatInput   { background: #0f1724; color: #e2e8f0; }
+      body.dark .qa-btn, body.dark .stat-box { background: #0f1724; }
+      body.dark .suggestions { background: #131f33; }
+      body.dark .suggestion-chip { background: #1a2234; color: #e2e8f0; }
+
+      /* Dark mode toggle button in header */
+      #darkModeBtn {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.25);
+        color: #fff; padding: 6px 12px;
+        border-radius: 20px; cursor: pointer;
+        font-size: 0.82rem; transition: background 0.2s;
+      }
+      #darkModeBtn:hover { background: rgba(255,255,255,0.22); }
+
+      /* Footer below login card */
+      .login-footer {
+        margin-top: 20px;
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.5);
+        text-align: center;
+      }
+
+      /* Logout button in header */
+      #logoutBtn {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+      #logoutBtn:hover { background: rgba(220,38,38,0.5); }
+
+      /* ===========================================================
+       RESPONSIVE — collapse sidebar on small screens
+    =========================================================== */
+      @media (max-width: 768px) {
+        main {
+          flex-direction: column;
+          padding: 12px;
+        }
+
+        .sidebar {
+          width: 100%;
+          min-width: unset;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .card {
+          flex: 1;
+          min-width: 220px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- ============================================================
+     LOGIN SCREEN
+     Shown first — hides when user successfully logs in.
+     Three role tabs: Customer, Employee, Admin.
+     Demo credentials shown in the hint box below the form.
+============================================================ -->
+    <div id="loginScreen">
+      <div class="login-card">
+
+        <!-- Bank logo + title -->
+        <div class="login-logo">
+          <span class="logo-icon">🏦</span>
+          <h1>BankBot<span style="color:var(--accent)">AI</span></h1>
+          <p>Secure Banking Assistant — Please sign in to continue</p>
+        </div>
+
+        <!-- Role selector tabs (Customer / Employee / Admin) -->
+        <div class="login-tabs">
+          <button class="login-tab active" onclick="selectLoginRole('customer', this)">👤 Customer</button>
+          <button class="login-tab"        onclick="selectLoginRole('employee', this)">🏦 Employee</button>
+          <button class="login-tab"        onclick="selectLoginRole('admin',    this)">🛡️ Admin</button>
+        </div>
+
+        <!-- PASSWORD STEP (shown first) -->
+        <div id="passwordStep">
+
+          <!-- Username field -->
+          <label class="login-label" for="loginUser">Username / Account ID</label>
+          <input class="login-input" type="text" id="loginUser"
+                 placeholder="Enter your username" autocomplete="username" />
+
+          <!-- Password field with show/hide toggle -->
+          <label class="login-label" for="loginPass">Password</label>
+          <div class="pass-wrap">
+            <input class="login-input" type="password" id="loginPass"
+                   placeholder="Enter your password"
+                   autocomplete="current-password"
+                   onkeydown="if(event.key==='Enter') doLogin()" />
+            <!-- Eye icon toggles password visibility -->
+            <button class="toggle-pass" type="button" onclick="togglePassword()" id="eyeBtn" title="Show/Hide password">👁</button>
+          </div>
+
+          <!-- Remember Me checkbox -->
+          <div class="remember-row">
+            <input type="checkbox" id="rememberMe" />
+            <label for="rememberMe">Remember my role on this device</label>
+          </div>
+
+          <!-- Error message -->
+          <div id="loginError">❌ Incorrect credentials. Please try again.</div>
+
+          <!-- Lockout countdown message -->
+          <div id="lockoutMsg">🔒 Too many attempts. Try again in <span id="lockCountdown">30</span>s</div>
+
+          <!-- Login button -->
+          <button class="login-btn" id="loginBtn" onclick="doLogin()">🔐 Sign In</button>
+
+          <!-- Demo credentials hint -->
+          <div class="login-hint">
+            <strong>Demo Credentials</strong>
+            👤 Customer &nbsp;→ <b>customer</b> / <b>bank123</b><br>
+            🏦 Employee &nbsp;→ <b>employee</b> / <b>emp456</b><br>
+            🛡️ Admin &nbsp;&nbsp;&nbsp;&nbsp;→ <b>admin</b> &nbsp;&nbsp;/ <b>admin789</b>
+          </div>
+        </div>
+
+        <!-- OTP STEP (hidden — shown after correct password) -->
+        <div id="otpScreen">
+          <div class="otp-title">
+            <div style="font-size:2rem;">📱</div>
+            <h3 style="font-size:1rem; font-weight:700; margin-top:6px;">OTP Verification</h3>
+            <p>A 6-digit OTP has been sent to your registered mobile number ending in <b>••••67</b></p>
+          </div>
+
+          <!-- Six individual digit input boxes -->
+          <div class="otp-boxes" id="otpBoxes">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,0)" />
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,1)" />
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,2)" />
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,3)" />
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,4)" />
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" onkeyup="otpNext(this,5)" />
+          </div>
+
+          <p class="otp-resend">Didn't receive it? <span onclick="resendOtp()">Resend OTP</span> &nbsp;|&nbsp; Expires in <span id="otpTimer">60</span>s</p>
+
+          <button class="login-btn" onclick="verifyOtp()">✅ Verify OTP</button>
+          <button class="login-btn" style="background:transparent;color:var(--text-muted);border:1.5px solid var(--border);margin-top:8px;" onclick="backToPassword()">← Back</button>
+        </div>
+
+      </div>
+
+      <!-- Small copyright line below the card -->
+      <div class="login-footer">🔒 256-bit SSL Encrypted &nbsp;|&nbsp; BankBot AI © 2026</div>
+    </div>
+
+    <!-- ============================================================
+     ALERT BANNER
+     Appears at top of screen for errors, warnings, or success
+============================================================ -->
+    <div id="alertBanner"></div>
+
+    <!-- ============================================================
+     HEADER / NAVIGATION BAR
+============================================================ -->
+    <header>
+      <div class="brand">
+        <span>🏦</span>
+        <span>BankBot<span style="color:var(--accent)">AI</span></span>
+        <div class="brand-dot"></div>
+      </div>
+
+      <!-- Navigation view buttons -->
+      <div class="nav-links">
+        <button class="active" onclick="setView('chat')">💬 Chat</button>
+        <button onclick="setView('dashboard')">📊 Dashboard</button>
+        <button onclick="setView('neural')">🧠 AI Schema</button>
+        <button onclick="setView('transactions')">💳 Transactions</button>
+        <button onclick="setView('loans')">🏠 Loans</button>
+        <button onclick="setView('support')">🎧 Support</button>
+      </div>
+
+      <!-- Role badge — click to switch role -->
+      <div class="role-badge" onclick="openModal('roleModal')" id="roleBadge">
+        👤 Customer
+      </div>
+
+      <!-- Dark mode toggle -->
+      <button id="darkModeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙 Dark</button>
+
+      <!-- Logout button — sends user back to login screen -->
+      <button id="logoutBtn" onclick="doLogout()" title="Sign out">🚪 Logout</button>
+    </header>
+
+    <!-- Session timeout warning bar — appears 30s before auto-logout -->
+    <div id="sessionWarning">
+      ⚠️ You'll be logged out in <span id="warnCount">30</span>s due to inactivity
+      <button onclick="resetSessionTimer()">Stay Logged In</button>
+    </div>
+
+    <!-- ============================================================
+     MAIN LAYOUT
+============================================================ -->
+    <main>
+
+      <!-- ==========================================================
+       SIDEBAR
+  ========================================================== -->
+      <aside class="sidebar">
+
+        <!-- Role Selector Card -->
+        <div class="card">
+          <div class="card-title">🔐 Active Role</div>
+
+          <!-- Each button sets the current user role -->
+          <button class="role-btn selected" onclick="switchRole('customer', this)">
+            <span class="role-icon">👤</span> Customer
+          </button>
+          <button class="role-btn" onclick="switchRole('employee', this)">
+            <span class="role-icon">🏦</span> Bank Employee
+          </button>
+          <button class="role-btn" onclick="switchRole('admin', this)">
+            <span class="role-icon">🛡️</span> Admin
+          </button>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="card">
+          <div class="card-title">⚡ Quick Actions</div>
+          <div class="quick-actions" id="quickActionsContainer">
+            <!-- Populated by JS based on active role -->
+          </div>
+        </div>
+
+        <!-- Live Stats Card -->
+        <div class="card">
+          <div class="card-title">📈 Session Info</div>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-val" id="msgCount">0</div>
+              <div class="stat-lbl">Messages</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val" id="sessionTime">0m</div>
+              <div class="stat-lbl">Session</div>
+            </div>
+          </div>
+          <div class="stat-row" style="margin-top:8px;">
+            <div class="stat-box">
+              <div class="stat-val" style="font-size:0.85rem; color:var(--success);">●&nbsp;Active</div>
+              <div class="stat-lbl">Status</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val" id="roleLabel">Customer</div>
+              <div class="stat-lbl">Role</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Log Card (Employee/Admin only) -->
+        <div class="card" id="errorLogCard" style="display:none;">
+          <div class="card-title">⚠️ Error Log</div>
+          <div id="errorLog" style="font-size:0.78rem; color:var(--text-muted); line-height:1.7;">
+            No errors recorded yet.
+          </div>
+        </div>
+
+      </aside>
+
+      < CHAT PANEL <section class="chat-panel">
+
+        <!-- Chat window header -->
+        <div class="chat-header">
+          <div class="bot-avatar">🤖</div>
+          <div class="chat-header-info">
+            <h2>BankBot AI Assistant</h2>
+            <p><span class="status-dot"></span>Online — Secure 256-bit SSL</p>
+          </div>
+          <div class="chat-actions">
+            <button onclick="clearChat()">🗑 Clear</button>
+            <button onclick="exportChat()">⬇ Export</button>
+            <button onclick="showHelp()">❓ Help</button>
+          </div>
+        </div>
+
+        <!-- Messages scroll area -->
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages injected here by JS -->
+        </div>
+
+        <!-- Suggestion chips (quick-reply shortcuts) -->
+        <div class="suggestions" id="suggestionsBar">
+          <!-- Chips injected by JS -->
+        </div>
+
+        <!-- Input row -->
+        <div class="chat-input-row">
+          <div class="input-tools">
+            <button class="tool-btn" title="Attach file" onclick="showAlert('File upload coming in v2.2', 'warning')">📎</button>
+            <button class="tool-btn" title="Voice input" onclick="startVoice()">🎤</button>
+          </div>
+          <textarea id="chatInput" placeholder="Type your banking question here…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button id="sendBtn" onclick="sendMessage()" title="Send message">➤</button>
+        </div>
+
+        </section>
+    </main>
+
+    <!-- ============================================================
+     NEURAL SCHEMA PANEL
+     Full-screen overlay showing animated neural network diagram.
+     Toggled by clicking "🧠 AI Schema" in the nav bar.
+============================================================ -->
+    <div id="neuralPanel" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:300; overflow-y:auto; padding:30px 24px;">
+      <div style="max-width:900px; margin:0 auto;">
+
+        <!-- Header row -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:1.3rem; font-weight:800; color:var(--primary);">🧠 BankBot AI — Neural Processing Schema</h2>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Visualizes how your message flows through the AI decision engine in real time</p>
+          </div>
+          <button onclick="setView('chat')" style="padding:8px 18px; background:var(--primary); color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:0.82rem; font-weight:600;">✕ Close</button>
+        </div>
+
+        <!-- Animated canvas -->
+        <div style="background:#0a1628; border-radius:14px; padding:24px; box-shadow:0 8px 40px rgba(0,0,0,0.25);">
+          <canvas id="neuralCanvas" style="width:100%; display:block;" height="300"></canvas>
+
+          <!-- Layer name labels -->
+          <div style="display:flex; justify-content:space-between; padding:0 4px; margin-top:8px;">
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Input<br>Layer</span>
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Tokenize<br>Layer</span>
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Intent<br>Layer</span>
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Knowledge<br>Base</span>
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Role<br>Filter</span>
+            <span style="font-size:0.6rem; color:#3d5a8a; text-align:center; width:80px;">Output<br>Layer</span>
+          </div>
+
+          <!-- Live info box shows current step description -->
+          <div id="neuralInfo" style="margin-top:14px; background:#111e33; border:1px solid #1e3a6e; border-radius:10px; padding:12px 18px; font-size:0.8rem; color:#8ab4f8; text-align:center; min-height:42px;">
+            Click <strong style="color:#f0a500;">Simulate</strong> to watch a message travel through the AI engine
+          </div>
+
+          <!-- Legend -->
+          <div style="display:flex; gap:18px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
+            <span style="font-size:0.68rem; color:#7ba8f0; display:flex; align-items:center; gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:#3b82f6;display:inline-block;"></span>Input nodes</span>
+            <span style="font-size:0.68rem; color:#7ba8f0; display:flex; align-items:center; gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span>Hidden nodes</span>
+            <span style="font-size:0.68rem; color:#7ba8f0; display:flex; align-items:center; gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:#f0a500;display:inline-block;"></span>Active signal</span>
+            <span style="font-size:0.68rem; color:#7ba8f0; display:flex; align-items:center; gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Output node</span>
+          </div>
+
+          <button id="neuralSimBtn" onclick="runNeural()" style="display:block; margin:14px auto 0; padding:9px 28px; background:#1a3c6e; color:#7ba8f0; border:1.5px solid #2b5aa0; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer;">▶ Simulate Message Flow</button>
+        </div>
+
+        <!-- Architecture explanation cards -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:20px;">
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">📝</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Input Layer</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Receives raw text from the user. Converts it to lowercase and trims whitespace for clean processing.</div>
+          </div>
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">✂️</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Tokenization Layer</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Splits text into individual words (tokens). Removes filler words so only meaningful terms remain.</div>
+          </div>
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">🎯</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Intent Classification</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Matches tokens against 18 intent categories (balance, loan, fraud, KYC etc.) using keyword scoring.</div>
+          </div>
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">📚</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Knowledge Base</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Selects the correct response builder function based on detected intent. Holds all banking data.</div>
+          </div>
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">🔐</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Role Filter</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Checks STATE.role (Customer / Employee / Admin) and customizes the response accordingly.</div>
+          </div>
+          <div style="background:var(--card); border-radius:12px; padding:16px; border:1px solid var(--border);">
+            <div style="font-size:1.2rem; margin-bottom:6px;">💬</div>
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:4px;">Output Layer</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6;">Renders the final HTML bubble in the chat with animations, buttons, and formatted data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+     ROLE SWITCH MODAL
+============================================================ -->
+    <div class="modal-overlay" id="roleModal">
+      <div class="modal">
+        <h3>🔐 Switch Role / Verify Identity</h3>
+        <p>Enter your credentials to access the selected role features.</p>
+
+        <label>Employee / Account ID</label>
+        <input type="text" id="modalUserId" placeholder="e.g. EMP-00142 or ACC-78234" />
+
+        <label>Access PIN</label>
+        <input type="password" id="modalPin" placeholder="Enter 6-digit PIN" maxlength="6" />
+
+        <label>Select Role</label>
+        <select id="modalRole">
+          <option value="customer">Customer</option>
+          <option value="employee">Bank Employee</option>
+          <option value="admin">Administrator</option>
+        </select>
+
+        <div class="modal-footer">
+          <button class="btn-ghost" onclick="closeModal('roleModal')">Cancel</button>
+          <button class="btn-primary" onclick="verifyAndSwitch()">Verify & Login</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+     JAVASCRIPT — AI LOGIC, CHAT ENGINE, ROLE SYSTEM
+============================================================ -->
+    <script>
+      /* ===========================================================
+         ADVANCED LOGIN SYSTEM
+         Features:
+           1. Credential check per role
+           2. Lockout after 3 failed attempts (30s cooldown)
+           3. Show / hide password toggle
+           4. Remember Me (saves role to localStorage)
+           5. OTP step after password success
+           6. Session timeout (5 min inactivity → auto logout)
+           7. Dark mode toggle
+      =========================================================== */
+
+      // ---- Credential table (demo values) ----
+      const CREDENTIALS = {
+        customer: { username: 'customer', password: 'bank123' },
+        employee: { username: 'employee', password: 'emp456'  },
+        admin:    { username: 'admin',    password: 'admin789' },
+      };
+
+      // ---- Login state variables ----
+      let loginRole     = 'customer'; // currently selected tab role
+      let failCount     = 0;          // wrong-password counter
+      let isLockedOut   = false;      // true during lockout period
+      let lockTimer     = null;       // setInterval for lockout countdown
+      let otpTimerInt   = null;       // setInterval for OTP expiry countdown
+      let generatedOtp  = '';         // the fake OTP we "send"
+
+      // ---- Session timeout variables ----
+      let sessionTimer   = null;      // fires after 5 min of inactivity
+      let warnTimer      = null;      // countdown during the 30s warning
+      const SESSION_IDLE = 5 * 60 * 1000; // 5 minutes in ms
+      let warnInterval   = null;
+
+      /* ----------------------------------------------------------
+         selectLoginRole()
+         Called when user clicks a role tab on the login screen.
+      ---------------------------------------------------------- */
+      function selectLoginRole(role, btn) {
+        loginRole = role;
+        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        // Clear errors and fields when switching role
+        document.getElementById('loginError').style.display  = 'none';
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
+      }
+
+      /* ----------------------------------------------------------
+         togglePassword()
+         Switches the password field between text and password type
+         and flips the eye icon accordingly.
+      ---------------------------------------------------------- */
+      function togglePassword() {
+        const inp = document.getElementById('loginPass');
+        const btn = document.getElementById('eyeBtn');
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          btn.textContent = '🙈'; // closed eye = now visible
+        } else {
+          inp.type = 'password';
+          btn.textContent = '👁';
+        }
+      }
+
+      /* ----------------------------------------------------------
+         doLogin()
+         Step 1 of login: validate username + password.
+         On success → show OTP screen.
+         On 3 failures → lock the form for 30 seconds.
+      ---------------------------------------------------------- */
+      function doLogin() {
+        if (isLockedOut) return; // block clicks during lockout
+
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
+        const cred = CREDENTIALS[loginRole];
+
+        if (user === cred.username && pass === cred.password) {
+          // ✅ Correct — clear fail count and move to OTP step
+          failCount = 0;
+          document.getElementById('loginError').style.display = 'none';
+
+          // Save role if Remember Me is checked
+          if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('bankbot_role', loginRole);
+          }
+
+          // Generate and "send" a fake 6-digit OTP
+          generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+          console.log('Demo OTP (check console):', generatedOtp); // dev hint
+
+          // Switch from password screen to OTP screen
+          document.getElementById('passwordStep').style.display = 'none';
+          document.getElementById('otpScreen').style.display    = 'block';
+
+          // Clear any old OTP boxes and focus first box
+          document.querySelectorAll('.otp-box').forEach(b => b.value = '');
+          document.querySelectorAll('.otp-box')[0].focus();
+
+          // Start 60-second OTP expiry countdown
+          startOtpTimer();
+
+        } else {
+          // ❌ Wrong credentials
+          failCount++;
+          document.getElementById('loginError').style.display = 'block';
+
+          // Shake the card
+          const card = document.querySelector('.login-card');
+          card.style.animation = 'none';
+          card.offsetHeight;
+          card.style.animation = 'shake 0.4s ease';
+
+          // After 3 failures → lock the form
+          if (failCount >= 3) {
+            startLockout();
+          }
+        }
+      }
+
+      /* ----------------------------------------------------------
+         startLockout()
+         Disables the login button and counts down 30 seconds.
+         Re-enables the form when countdown reaches zero.
+      ---------------------------------------------------------- */
+      function startLockout() {
+        isLockedOut = true;
+        let secs = 30;
+        const btn      = document.getElementById('loginBtn');
+        const lockMsg  = document.getElementById('lockoutMsg');
+        const errMsg   = document.getElementById('loginError');
+
+        btn.disabled       = true;
+        btn.style.opacity  = '0.5';
+        btn.style.cursor   = 'not-allowed';
+        errMsg.style.display  = 'none';
+        lockMsg.style.display = 'block';
+        document.getElementById('lockCountdown').textContent = secs;
+
+        lockTimer = setInterval(() => {
+          secs--;
+          document.getElementById('lockCountdown').textContent = secs;
+          if (secs <= 0) {
+            clearInterval(lockTimer);
+            isLockedOut        = false;
+            failCount          = 0;
+            btn.disabled       = false;
+            btn.style.opacity  = '1';
+            btn.style.cursor   = 'pointer';
+            lockMsg.style.display = 'none';
+          }
+        }, 1000);
+      }
+
+      /* ----------------------------------------------------------
+         OTP step helpers
+      ---------------------------------------------------------- */
+
+      /** Auto-advance to next OTP box when a digit is typed */
+      function otpNext(input, index) {
+        // Only allow digits
+        input.value = input.value.replace(/\D/g, '');
+        const boxes = document.querySelectorAll('.otp-box');
+        if (input.value && index < 5) boxes[index + 1].focus();
+        // Backspace goes to previous box
+        if (!input.value && index > 0) boxes[index - 1].focus();
+      }
+
+      /** Start the 60-second OTP expiry countdown */
+      function startOtpTimer() {
+        clearInterval(otpTimerInt);
+        let secs = 60;
+        document.getElementById('otpTimer').textContent = secs;
+        otpTimerInt = setInterval(() => {
+          secs--;
+          document.getElementById('otpTimer').textContent = secs;
+          if (secs <= 0) {
+            clearInterval(otpTimerInt);
+            document.getElementById('otpTimer').textContent = '0';
+          }
+        }, 1000);
+      }
+
+      /** Resend OTP — regenerates code and resets timer */
+      function resendOtp() {
+        generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+        console.log('New Demo OTP:', generatedOtp);
+        document.querySelectorAll('.otp-box').forEach(b => b.value = '');
+        document.querySelectorAll('.otp-box')[0].focus();
+        startOtpTimer();
+        showAlert('OTP resent to your registered mobile!', 'success');
+      }
+
+      /** Go back to the password screen from OTP screen */
+      function backToPassword() {
+        clearInterval(otpTimerInt);
+        document.getElementById('otpScreen').style.display    = 'none';
+        document.getElementById('passwordStep').style.display = 'block';
+      }
+
+      /**
+       * verifyOtp()
+       * Reads the 6 OTP boxes, joins digits, checks against generatedOtp.
+       * On match → completes login and enters the app.
+       */
+      function verifyOtp() {
+        const entered = Array.from(document.querySelectorAll('.otp-box'))
+                             .map(b => b.value).join('');
+
+        // For demo convenience: also accept '123456' as a master OTP
+        if (entered === generatedOtp || entered === '123456') {
+          clearInterval(otpTimerInt);
+          document.getElementById('loginScreen').style.display = 'none';
+          switchRoleOnLogin(loginRole);
+          startSessionTimer();            // begin idle timeout
+          setTimeout(() => inject('hello'), 400);
+        } else {
+          // Wrong OTP — shake and show alert
+          const card = document.querySelector('.login-card');
+          card.style.animation = 'none';
+          card.offsetHeight;
+          card.style.animation = 'shake 0.4s ease';
+          showAlert('Incorrect OTP. Please try again.', 'error');
+        }
+      }
+
+      /* ----------------------------------------------------------
+         switchRoleOnLogin()
+         Applied immediately after OTP verification passes.
+      ---------------------------------------------------------- */
+      function switchRoleOnLogin(role) {
+        STATE.role = role;
+        const labels = { customer: '👤 Customer', employee: '🏦 Employee', admin: '🛡️ Admin' };
+        document.getElementById('roleBadge').textContent = labels[role];
+        document.getElementById('roleLabel').textContent =
+          role.charAt(0).toUpperCase() + role.slice(1);
+        document.getElementById('errorLogCard').style.display =
+          (role === 'employee' || role === 'admin') ? 'block' : 'none';
+        renderQuickActions();
+        renderSuggestions();
+      }
+
+      /* ----------------------------------------------------------
+         SESSION TIMEOUT SYSTEM
+         Idles for 5 minutes → shows 30s warning → auto-logout.
+         Any user action resets the 5-minute clock.
+      ---------------------------------------------------------- */
+
+      /** Start (or restart) the idle timer */
+      function startSessionTimer() {
+        clearTimeout(sessionTimer);
+        clearInterval(warnInterval);
+        document.getElementById('sessionWarning').style.display = 'none';
+
+        // After SESSION_IDLE ms of no activity, show the warning
+        sessionTimer = setTimeout(() => {
+          showSessionWarning();
+        }, SESSION_IDLE);
+      }
+
+      /** Shows the bottom bar with a 30-second countdown */
+      function showSessionWarning() {
+        const bar  = document.getElementById('sessionWarning');
+        bar.style.display = 'block';
+        let secs = 30;
+        document.getElementById('warnCount').textContent = secs;
+
+        warnInterval = setInterval(() => {
+          secs--;
+          document.getElementById('warnCount').textContent = secs;
+          if (secs <= 0) {
+            clearInterval(warnInterval);
+            doLogout(true); // auto-logout, no confirm dialog
+          }
+        }, 1000);
+      }
+
+      /** Called by "Stay Logged In" button — resets the full timer */
+      function resetSessionTimer() {
+        startSessionTimer();
+      }
+
+      // Reset timer on any mouse move, click, or keypress
+      ['mousemove','keydown','click','touchstart'].forEach(evt =>
+        document.addEventListener(evt, () => {
+          if (document.getElementById('loginScreen').style.display === 'none') {
+            startSessionTimer();
+          }
+        })
+      );
+
+      /* ----------------------------------------------------------
+         DARK MODE
+      ---------------------------------------------------------- */
+      function toggleDark() {
+        const isDark = document.body.classList.toggle('dark');
+        const btn    = document.getElementById('darkModeBtn');
+        btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        localStorage.setItem('bankbot_dark', isDark ? '1' : '0');
+      }
+
+      // Apply saved dark mode preference on page load
+      if (localStorage.getItem('bankbot_dark') === '1') {
+        document.body.classList.add('dark');
+        document.getElementById('darkModeBtn').textContent = '☀️ Light';
+      }
+
+      // Apply saved role preference (Remember Me)
+      const savedRole = localStorage.getItem('bankbot_role');
+      if (savedRole && CREDENTIALS[savedRole]) {
+        loginRole = savedRole;
+        document.querySelectorAll('.login-tab').forEach((t, i) => {
+          const roles = ['customer','employee','admin'];
+          t.classList.toggle('active', roles[i] === savedRole);
+        });
+      }
+
+      /* ----------------------------------------------------------
+         doLogout()
+         Clears session and returns to login screen.
+         skipConfirm=true is used by the auto-logout timer.
+      ---------------------------------------------------------- */
+      function doLogout(skipConfirm = false) {
+        if (!skipConfirm && !confirm('Are you sure you want to logout?')) return;
+
+        // Stop all timers
+        clearTimeout(sessionTimer);
+        clearInterval(warnInterval);
+        clearInterval(lockTimer);
+        clearInterval(otpTimerInt);
+
+        // Reset chat
+        document.getElementById('chatMessages').innerHTML = '';
+        STATE.messages = [];
+        STATE.msgCount = 0;
+        STATE.errors   = [];
+        document.getElementById('msgCount').textContent = '0';
+
+        // Reset login form to initial state
+        document.getElementById('loginUser').value  = '';
+        document.getElementById('loginPass').value  = '';
+        document.getElementById('loginPass').type   = 'password';
+        document.getElementById('eyeBtn').textContent = '👁';
+        document.getElementById('loginError').style.display  = 'none';
+        document.getElementById('lockoutMsg').style.display  = 'none';
+        document.getElementById('sessionWarning').style.display = 'none';
+        document.getElementById('passwordStep').style.display = 'block';
+        document.getElementById('otpScreen').style.display   = 'none';
+
+        failCount   = 0;
+        isLockedOut = false;
+
+        // Show login screen
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+
+      /* ===========================================================
+         STATE — global application state object
+         All runtime data lives here to keep it organized
+      =========================================================== */
+      const STATE = {
+        role: 'customer',          // Current active role
+        messages: [],              // Full chat message history
+        msgCount: 0,               // Total messages sent this session
+        sessionStart: Date.now(),  // When the session began (for timer)
+        errors: [],                // Error log entries (employee/admin)
+        typingTimer: null,         // Used to cancel pending bot replies
+      };
+
+      /* ===========================================================
+         KNOWLEDGE BASE — the AI's response data
+         Organized by intent keyword patterns.
+         Each entry has: keywords[], response function or string.
+      =========================================================== */
+      const KNOWLEDGE_BASE = [
+
+        /* ---- GREETINGS ---- */
+        {
+          keys: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'start', 'begin'],
+          respond: () => greetUser()
+        },
+
+        /* ---- ACCOUNT BALANCE ---- */
+        {
+          keys: ['balance', 'my balance', 'check balance', 'account balance', 'how much', 'funds'],
+          respond: () => buildBalanceReply()
+        },
+
+        /* ---- TRANSACTIONS / TRANSFERS ---- */
+        {
+          keys: ['transfer', 'send money', 'transaction', 'payment', 'pay', 'wire', 'remittance'],
+          respond: () => buildTransferReply()
+        },
+
+        /* ---- STATEMENT ---- */
+        {
+          keys: ['statement', 'mini statement', 'history', 'past transactions', 'last transactions', 'record'],
+          respond: () => buildStatementReply()
+        },
+
+        /* ---- LOANS ---- */
+        {
+          keys: ['loan', 'emi', 'borrow', 'mortgage', 'home loan', 'car loan', 'personal loan', 'credit'],
+          respond: () => buildLoanReply()
+        },
+
+        /* ---- BLOCK / FREEZE CARD ---- */
+        {
+          keys: ['block card', 'freeze card', 'lost card', 'stolen card', 'disable card', 'debit block'],
+          respond: () => buildBlockCardReply()
+        },
+
+        /* ---- NEW ACCOUNT ---- */
+        {
+          keys: ['open account', 'new account', 'create account', 'savings account', 'current account'],
+          respond: () => buildNewAccountReply()
+        },
+
+        /* ---- KYC ---- */
+        {
+          keys: ['kyc', 'know your customer', 'aadhar', 'pan', 'identity', 'verification', 'document'],
+          respond: () => buildKycReply()
+        },
+
+        /* ---- INTEREST RATES ---- */
+        {
+          keys: ['interest rate', 'rate', 'fd rate', 'fixed deposit', 'saving rate', 'roi'],
+          respond: () => buildRatesReply()
+        },
+
+        /* ---- ATM / BRANCH ---- */
+        {
+          keys: ['atm', 'branch', 'nearest', 'location', 'find branch', 'find atm'],
+          respond: () => buildAtmReply()
+        },
+
+        /* ---- FRAUD / DISPUTE ---- */
+        {
+          keys: ['fraud', 'scam', 'dispute', 'unauthorized', 'suspicious', 'chargeback', 'stolen', 'hacked'],
+          respond: () => buildFraudReply()
+        },
+
+        /* ---- NET BANKING ---- */
+        {
+          keys: ['net banking', 'internet banking', 'online banking', 'login issue', 'password reset', 'otp'],
+          respond: () => buildNetBankingReply()
+        },
+
+        /* ---- EMPLOYEE: ERROR HANDLING ---- */
+        {
+          keys: ['error', 'system error', 'transaction failed', 'decline', 'reject', 'issue', 'not working', 'problem', 'bug'],
+          respond: () => buildErrorReply()
+        },
+
+        /* ---- EMPLOYEE: CUSTOMER LOOKUP ---- */
+        {
+          keys: ['lookup', 'customer lookup', 'find customer', 'search customer', 'customer details', 'view account'],
+          respond: () => buildLookupReply()
+        },
+
+        /* ---- ADMIN: REPORTS ---- */
+        {
+          keys: ['report', 'daily report', 'generate report', 'analytics', 'summary', 'stats'],
+          respond: () => buildReportReply()
+        },
+
+        /* ---- ADMIN: SYSTEM STATUS ---- */
+        {
+          keys: ['system status', 'server', 'health', 'uptime', 'maintenance', 'downtime'],
+          respond: () => buildSystemReply()
+        },
+
+        /* ---- HELP ---- */
+        {
+          keys: ['help', 'what can you do', 'options', 'menu', 'commands', 'services'],
+          respond: () => buildHelpReply()
+        },
+
+        /* ---- THANKS ---- */
+        {
+          keys: ['thank', 'thanks', 'thank you', 'great', 'awesome', 'perfect', 'good'],
+          respond: () => `<p>You're most welcome! 😊 Is there anything else I can help you with today?</p>
+    <div class="bubble-actions">
+      <button class="bub-btn" onclick="inject('Check my balance')">Check Balance</button>
+      <button class="bub-btn" onclick="inject('I need help')">More Help</button>
+    </div>`
+        },
+
+        /* ---- BYE ---- */
+        {
+          keys: ['bye', 'goodbye', 'exit', 'close', 'quit', 'done', 'that is all', 'that\'s all'],
+          respond: () => `<p>Thank you for banking with us! 🏦<br>Have a great day. Your session has been secured. <span class="pill green">Session Ended</span></p>`
+        }
+      ];
+
+      /* ===========================================================
+         RESPONSE BUILDER FUNCTIONS
+         Each function returns an HTML string for the bot bubble.
+      =========================================================== */
+
+      /** Personalized greeting based on role and time of day */
+      function greetUser() {
+        const hour = new Date().getHours();
+        const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+        const name = STATE.role === 'employee' ? 'team member' : STATE.role === 'admin' ? 'Administrator' : 'valued customer';
+
+        return `<p>${greet}! 👋 Welcome to <strong>BankBot AI</strong>.<br>
+  I'm your intelligent banking assistant. I'm here as your <span class="pill blue">${STATE.role.toUpperCase()}</span> role.</p>
+  <p style="margin-top:8px;">How can I assist you today?</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="inject('Check my balance')">💳 Balance</button>
+    <button class="bub-btn" onclick="inject('Transfer money')">💸 Transfer</button>
+    <button class="bub-btn" onclick="inject('Loan information')">🏠 Loans</button>
+    <button class="bub-btn accent" onclick="inject('I need help')">❓ Help</button>
+  </div>`;
+      }
+
+      /** Account balance display */
+      function buildBalanceReply() {
+        if (STATE.role === 'employee' || STATE.role === 'admin') {
+          return `<h4>🔍 Customer Balance Lookup</h4>
+    <p>Enter the Account Number to view balance:</p>
+    <div class="bubble-actions">
+      <button class="bub-btn" onclick="inject('lookup customer account ACC-78234')">Sample Lookup</button>
+      <button class="bub-btn accent" onclick="inject('system report')">View Report</button>
+    </div>`;
+        }
+        // Simulated balance data for demo
+        const accounts = [
+          { name: 'Savings Account', num: 'XXXX-XXXX-7823', bal: '₹ 1,24,500.00', status: 'Active', cls: 'green' },
+          { name: 'Current Account', num: 'XXXX-XXXX-3410', bal: '₹ 38,250.75', status: 'Active', cls: 'green' },
+          { name: 'Fixed Deposit', num: 'FD-2024-00412', bal: '₹ 2,00,000.00', status: 'Locked', cls: 'yellow' },
+        ];
+        let rows = accounts.map(a => `
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-label">${a.name}</span>
+        <span class="pill ${a.cls}">${a.status}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Account No.</span>
+        <span class="info-value">${a.num}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Balance</span>
+        <span class="info-value ${a.cls}">${a.bal}</span>
+      </div>
+    </div>`).join('');
+
+        return `<h4>💳 Account Balances</h4>
+  <p>As of <strong>${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>:</p>
+  ${rows}
+  <div class="bubble-actions" style="margin-top:12px;">
+    <button class="bub-btn" onclick="inject('Show my statement')">📋 Statement</button>
+    <button class="bub-btn" onclick="inject('Transfer money')">💸 Transfer</button>
+  </div>`;
+      }
+
+      /** Money transfer flow */
+      function buildTransferReply() {
+        return `<h4>💸 Fund Transfer</h4>
+  <p>I can help you transfer funds. Please choose a transfer type:</p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">IMPS</span><span class="info-value green">Instant • 24×7 • Up to ₹5L</span></div>
+    <div class="info-row"><span class="info-label">NEFT</span><span class="info-value">Batched • Mon–Sat • Any Amount</span></div>
+    <div class="info-row"><span class="info-label">RTGS</span><span class="info-value">Real-time • Min ₹2L • Bank Hours</span></div>
+    <div class="info-row"><span class="info-label">UPI</span><span class="info-value green">Instant • 24×7 • Up to ₹1L</span></div>
+  </div>
+  <p style="margin-top:10px;font-size:0.8rem;color:var(--text-muted);">⚠️ Always verify recipient details before confirming. Transfers cannot be reversed once processed.</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('Redirecting to secure transfer portal…','success')">🔒 Initiate Transfer</button>
+    <button class="bub-btn" onclick="inject('Check my balance')">Check Balance First</button>
+  </div>`;
+      }
+
+      /** Mini-statement */
+      function buildStatementReply() {
+        const txns = [
+          { date: '18 Jun', desc: 'UPI — Swiggy', amt: '- ₹480', cls: 'red' },
+          { date: '17 Jun', desc: 'Salary Credit', amt: '+ ₹55,000', cls: 'green' },
+          { date: '16 Jun', desc: 'NEFT — Housing Loan', amt: '- ₹18,500', cls: 'red' },
+          { date: '15 Jun', desc: 'ATM Withdrawal', amt: '- ₹3,000', cls: 'red' },
+          { date: '14 Jun', desc: 'Interest Credit — FD', amt: '+ ₹1,250', cls: 'green' },
+        ];
+        let rows = txns.map(t => `
+    <div class="info-row">
+      <span class="info-label">${t.date} — ${t.desc}</span>
+      <span class="info-value ${t.cls}">${t.amt}</span>
+    </div>`).join('');
+
+        return `<h4>📋 Mini Statement — Last 5 Transactions</h4>
+  <div class="info-box">${rows}</div>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('Full statement sent to your registered email!','success')">📧 Email Full Statement</button>
+    <button class="bub-btn" onclick="showAlert('PDF download started…','success')">⬇ Download PDF</button>
+  </div>`;
+      }
+
+      /** Loan information */
+      function buildLoanReply() {
+        return `<h4>🏠 Loan Products</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Home Loan</span>     <span class="info-value green">8.40% p.a.</span></div>
+    <div class="info-row"><span class="info-label">Car Loan</span>      <span class="info-value green">9.25% p.a.</span></div>
+    <div class="info-row"><span class="info-label">Personal Loan</span> <span class="info-value gold">11.50% p.a.</span></div>
+    <div class="info-row"><span class="info-label">Education Loan</span><span class="info-value green">8.65% p.a.</span></div>
+    <div class="info-row"><span class="info-label">Gold Loan</span>     <span class="info-value green">7.90% p.a.</span></div>
+  </div>
+  <p style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);">📌 Rates are indicative and subject to credit assessment. Processing fee: 0.5%–1%</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('EMI Calculator opening…','success')">🧮 EMI Calculator</button>
+    <button class="bub-btn accent" onclick="showAlert('Loan application started. A banker will call you within 24 hrs.','success')">Apply Now</button>
+  </div>`;
+      }
+
+      /** Block / freeze card */
+      function buildBlockCardReply() {
+        return `<h4>🔴 Block / Freeze Card</h4>
+  <p>This will immediately disable your card for all transactions.</p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Card ending in</span><span class="info-value">•••• 9201</span></div>
+    <div class="info-row"><span class="info-label">Type</span><span class="info-value">Debit Card (Visa)</span></div>
+    <div class="info-row"><span class="info-label">Status</span><span class="pill green">Active</span></div>
+  </div>
+  <p style="color:var(--error); font-size:0.82rem; margin-top:8px;">⚠️ Once blocked, you will need to visit a branch or call 1800-XXX-XXXX to reactivate.</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" style="border-color:var(--error);color:var(--error);"
+      onclick="logError('CARD_BLOCK_REQ','User requested card block'); showAlert('Your card ending 9201 has been blocked!','success')">
+      🔴 Block My Card
+    </button>
+    <button class="bub-btn" onclick="inject('Report fraud')">🚨 Report Fraud</button>
+  </div>`;
+      }
+
+      /** Open new account */
+      function buildNewAccountReply() {
+        return `<h4>🏦 Open a New Account</h4>
+  <p>We offer the following account types:</p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Savings Account</span>  <span class="info-value green">Min ₹1,000 balance</span></div>
+    <div class="info-row"><span class="info-label">Current Account</span>  <span class="info-value">Min ₹10,000 balance</span></div>
+    <div class="info-row"><span class="info-label">Salary Account</span>   <span class="info-value green">Zero balance</span></div>
+    <div class="info-row"><span class="info-label">NRI Account</span>      <span class="info-value">Special NRI rates</span></div>
+  </div>
+  <p style="margin-top:8px; font-size:0.8rem; color:var(--text-muted);">📄 Documents required: Aadhaar, PAN, Photograph, Address Proof</p>
+  <div class="bubble-actions">
+    <button class="bub-btn accent" onclick="showAlert('Account opening form sent to your email!','success')">📝 Apply Online</button>
+    <button class="bub-btn" onclick="inject('KYC documents')">KYC Info</button>
+  </div>`;
+      }
+
+      /** KYC information */
+      function buildKycReply() {
+        return `<h4>📋 KYC Requirements</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Identity Proof</span>     <span class="info-value">Aadhaar / Passport / Voter ID</span></div>
+    <div class="info-row"><span class="info-label">PAN Card</span>           <span class="info-value">Mandatory for all accounts</span></div>
+    <div class="info-row"><span class="info-label">Address Proof</span>      <span class="info-value">Utility Bill / Aadhaar</span></div>
+    <div class="info-row"><span class="info-label">Photograph</span>         <span class="info-value">2 recent passport size</span></div>
+    <div class="info-row"><span class="info-label">Video KYC</span>          <span class="pill green">Available Online</span></div>
+  </div>
+  <div class="bubble-actions">
+    <button class="bub-btn accent" onclick="showAlert('Video KYC session scheduled!','success')">📹 Video KYC</button>
+    <button class="bub-btn" onclick="inject('Open new account')">Open Account</button>
+  </div>`;
+      }
+
+      /** Interest rates */
+      function buildRatesReply() {
+        return `<h4>📊 Current Interest Rates</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Savings Account</span>   <span class="info-value green">3.50% p.a.</span></div>
+    <div class="info-row"><span class="info-label">FD (1 year)</span>       <span class="info-value green">7.10% p.a.</span></div>
+    <div class="info-row"><span class="info-label">FD (3 years)</span>      <span class="info-value green">7.50% p.a.</span></div>
+    <div class="info-row"><span class="info-label">FD (5 years)</span>      <span class="info-value green">7.75% p.a.</span></div>
+    <div class="info-row"><span class="info-label">RD (12 months)</span>    <span class="info-value">6.80% p.a.</span></div>
+    <div class="info-row"><span class="info-label">Senior Citizen FD</span> <span class="info-value green">+0.50% extra</span></div>
+  </div>
+  <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Rates effective from 01 Jun 2026. Subject to change.</p>`;
+      }
+
+      /** ATM / Branch locator */
+      function buildAtmReply() {
+        return `<h4>📍 Find Nearest ATM / Branch</h4>
+  <p>Showing nearest locations to your registered address:</p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">ATM — MG Road</span>     <span class="info-value green">0.3 km • Open 24×7</span></div>
+    <div class="info-row"><span class="info-label">Branch — Koramangala</span><span class="info-value">1.2 km • 9am–4pm</span></div>
+    <div class="info-row"><span class="info-label">ATM — Forum Mall</span>  <span class="info-value green">1.5 km • Open 24×7</span></div>
+    <div class="info-row"><span class="info-label">Branch — Indiranagar</span><span class="info-value">2.1 km • 9am–4pm</span></div>
+  </div>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('Opening map…','success')">🗺 Open in Maps</button>
+  </div>`;
+      }
+
+      /** Fraud / dispute reporting */
+      function buildFraudReply() {
+        logError('FRAUD_ALERT', 'Customer reported potential fraud/dispute');
+        return `<h4>🚨 Fraud & Dispute Center</h4>
+  <p>We take fraud very seriously. Your report has been flagged. <span class="pill red">ALERT LOGGED</span></p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">24×7 Fraud Hotline</span>  <span class="info-value red">1800-XXX-FRAUD</span></div>
+    <div class="info-row"><span class="info-label">Email</span>               <span class="info-value">fraud@bankbot.in</span></div>
+    <div class="info-row"><span class="info-label">Response Time</span>       <span class="info-value green">&lt; 2 hours</span></div>
+  </div>
+  <p style="font-size:0.8rem;color:var(--error);margin-top:8px;">⚠️ Do NOT share OTP, CVV, or PIN with anyone — including bank staff.</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" style="border-color:var(--error);color:var(--error);"
+      onclick="showAlert('Fraud case FRD-2026-009 registered. Team will contact you shortly.','success')">
+      🚨 File Fraud Case
+    </button>
+    <button class="bub-btn" onclick="inject('Block my card')">🔴 Block Card</button>
+  </div>`;
+      }
+
+      /** Net banking / password */
+      function buildNetBankingReply() {
+        return `<h4>💻 Net Banking & Login Help</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Forgot Password</span>   <span class="info-value">Reset via OTP on mobile</span></div>
+    <div class="info-row"><span class="info-label">Account Locked</span>    <span class="info-value">Auto-unlocks in 30 min</span></div>
+    <div class="info-row"><span class="info-label">OTP Not Received</span>  <span class="info-value">Check SMS / retry in 60s</span></div>
+    <div class="info-row"><span class="info-label">Browser Issues</span>    <span class="info-value">Use Chrome / Firefox</span></div>
+  </div>
+  <div class="bubble-actions">
+    <button class="bub-btn accent" onclick="showAlert('Password reset OTP sent to your mobile!','success')">🔑 Reset Password</button>
+    <button class="bub-btn" onclick="showAlert('Connecting to technical support…','warning')">📞 Call Support</button>
+  </div>`;
+      }
+
+      /** Employee: error handler */
+      function buildErrorReply() {
+        if (STATE.role === 'customer') {
+          return `<h4>⚠️ Reporting an Issue</h4>
+    <p>I'm sorry you're experiencing a problem. Let me help resolve it:</p>
+    <div class="bubble-actions">
+      <button class="bub-btn accent" onclick="inject('I need to speak to a human agent')">👤 Human Agent</button>
+      <button class="bub-btn" onclick="showAlert('Ticket TKT-20260619-0042 raised!','success')">🎫 Raise Ticket</button>
+    </div>`;
+        }
+
+        const errors = [
+          { code: 'ERR-TXN-4021', msg: 'Transaction timeout on IMPS gateway', sev: 'red', fix: 'Retry after 5 mins or switch to NEFT' },
+          { code: 'ERR-AUTH-1102', msg: 'OTP service degraded — SMS delay', sev: 'yellow', fix: 'Use email OTP as fallback' },
+          { code: 'ERR-KYC-3301', msg: 'KYC document OCR failure', sev: 'red', fix: 'Manual verification required' },
+          { code: 'ERR-CBS-2200', msg: 'Core banking sync lag detected', sev: 'yellow', fix: 'Expect 5-min delay in balance updates' },
+        ];
+
+        let rows = errors.map(e => `
+    <div class="info-box" style="border-left: 3px solid var(--${e.sev === 'red' ? 'error' : 'warning'});">
+      <div class="info-row">
+        <span class="info-label">${e.code}</span>
+        <span class="pill ${e.sev === 'red' ? 'red' : 'yellow'}">${e.sev === 'red' ? 'Critical' : 'Warning'}</span>
+      </div>
+      <div class="info-row"><span class="info-label">Issue</span><span class="info-value">${e.msg}</span></div>
+      <div class="info-row"><span class="info-label">Fix</span>  <span class="info-value green">${e.fix}</span></div>
+    </div>`).join('');
+
+        errors.forEach(e => logError(e.code, e.msg));
+
+        return `<h4>⚠️ Current System Errors</h4>
+  <p>Active error codes as of <strong>${new Date().toLocaleTimeString()}</strong>:</p>
+  ${rows}
+  <div class="bubble-actions">
+    <button class="bub-btn accent" onclick="showAlert('Error report generated and emailed to IT team.','success')">📧 Escalate to IT</button>
+  </div>`;
+      }
+
+      /** Employee: customer lookup */
+      function buildLookupReply() {
+        if (STATE.role === 'customer') {
+          return `<p>Sorry, customer lookup is only available to bank employees. Please ask a staff member for help.</p>`;
+        }
+        return `<h4>🔍 Customer Lookup</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Name</span>            <span class="info-value">Rajesh Kumar</span></div>
+    <div class="info-row"><span class="info-label">Account No.</span>     <span class="info-value">ACC-78234</span></div>
+    <div class="info-row"><span class="info-label">KYC Status</span>      <span class="pill green">Verified</span></div>
+    <div class="info-row"><span class="info-label">Account Status</span>  <span class="pill green">Active</span></div>
+    <div class="info-row"><span class="info-label">Risk Profile</span>    <span class="pill blue">Low</span></div>
+    <div class="info-row"><span class="info-label">Savings Balance</span> <span class="info-value green">₹ 1,24,500</span></div>
+    <div class="info-row"><span class="info-label">Loan Outstanding</span><span class="info-value red">₹ 8,50,000</span></div>
+    <div class="info-row"><span class="info-label">Last Login</span>      <span class="info-value">18 Jun 2026, 14:32</span></div>
+  </div>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('Full profile opened in new tab.','success')">👁 View Full Profile</button>
+    <button class="bub-btn accent" onclick="showAlert('Account flagged for review.','warning')">🚩 Flag Account</button>
+  </div>`;
+      }
+
+      /** Admin: reports */
+      function buildReportReply() {
+        if (STATE.role === 'customer') {
+          return `<p>Report generation is restricted to admin users. Please contact your bank manager.</p>`;
+        }
+        return `<h4>📊 Daily Operations Report — ${new Date().toLocaleDateString('en-IN')}</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Total Transactions</span>  <span class="info-value">14,823</span></div>
+    <div class="info-row"><span class="info-label">Transaction Volume</span>  <span class="info-value green">₹ 4.2 Crore</span></div>
+    <div class="info-row"><span class="info-label">Failed Transactions</span> <span class="info-value red">47 (0.3%)</span></div>
+    <div class="info-row"><span class="info-label">New Accounts Today</span>  <span class="info-value">128</span></div>
+    <div class="info-row"><span class="info-label">KYC Pending</span>         <span class="info-value yellow">312</span></div>
+    <div class="info-row"><span class="info-label">Fraud Alerts</span>        <span class="info-value red">3 <span class="pill red">Review</span></span></div>
+    <div class="info-row"><span class="info-label">System Uptime</span>       <span class="info-value green">99.97%</span></div>
+  </div>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="showAlert('Full report exported as PDF.','success')">⬇ Export PDF</button>
+    <button class="bub-btn accent" onclick="showAlert('Report sent to management team!','success')">📧 Email to Management</button>
+  </div>`;
+      }
+
+      /** Admin: system status */
+      function buildSystemReply() {
+        return `<h4>🖥 System Health Status</h4>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Core Banking (CBS)</span>    <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">Internet Banking</span>      <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">UPI / IMPS Gateway</span>   <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">NEFT / RTGS</span>          <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">SMS / OTP Service</span>    <span class="pill yellow">Degraded</span></div>
+    <div class="info-row"><span class="info-label">ATM Network</span>          <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">Fraud Detection</span>      <span class="pill green">Operational</span></div>
+    <div class="info-row"><span class="info-label">Last Backup</span>          <span class="info-value">Today 04:00 AM</span></div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--warning);margin-top:8px;">⚠️ SMS service is degraded. Fallback: email OTP is active.</p>`;
+      }
+
+      /** Help menu */
+      function buildHelpReply() {
+        const topics = STATE.role === 'customer'
+          ? ['Check balance', 'Transfer money', 'Mini statement', 'Loan information', 'Block my card',
+            'Open new account', 'KYC documents', 'Interest rates', 'Find ATM', 'Report fraud', 'Net banking help']
+          : STATE.role === 'employee'
+            ? ['Check balance', 'Customer lookup', 'System errors', 'Transaction report', 'KYC status', 'Fraud alerts']
+            : ['System report', 'System status', 'All error codes', 'Daily analytics', 'Customer lookup', 'Fraud alerts'];
+
+        const chips = topics.map(t =>
+          `<button class="bub-btn" onclick="inject('${t}')" style="margin:3px;">${t}</button>`
+        ).join('');
+
+        return `<h4>❓ What I Can Help You With</h4>
+  <p>Tap any topic below or type your question:</p>
+  <div class="bubble-actions" style="flex-wrap:wrap;">${chips}</div>`;
+      }
+
+      /* ===========================================================
+         AI ROUTING ENGINE
+         Matches user input to the best knowledge base entry.
+         Falls back to a default "not understood" reply.
+      =========================================================== */
+      function getAIResponse(userText) {
+        const text = userText.toLowerCase().trim();
+
+        // Find the first knowledge base entry where any keyword matches
+        for (const entry of KNOWLEDGE_BASE) {
+          if (entry.keys.some(k => text.includes(k))) {
+            return entry.respond();
+          }
+        }
+
+        // Default / fallback response when no intent matched
+        return `<p>I'm not sure I fully understood that. Could you rephrase, or try one of these?</p>
+  <div class="bubble-actions">
+    <button class="bub-btn" onclick="inject('Show me what you can do')">❓ Help Menu</button>
+    <button class="bub-btn" onclick="inject('Check my balance')">💳 Balance</button>
+    <button class="bub-btn accent" onclick="showAlert('Connecting you to a live agent…','success')">👤 Human Agent</button>
+  </div>`;
+      }
+
+      /* ===========================================================
+         CHAT RENDERING HELPERS
+      =========================================================== */
+
+      /** Add a message bubble to the chat window */
+      function addMessage(type, htmlContent) {
+        const messages = document.getElementById('chatMessages');
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const row = document.createElement('div');
+        row.className = `msg-row ${type}`;
+
+        const avatarChar = type === 'bot' ? '🤖' : '👤';
+        const avatarClass = type === 'bot' ? 'bot-av' : 'user-av';
+
+        row.innerHTML = `
+    <div class="msg-avatar ${avatarClass}">${avatarChar}</div>
+    <div>
+      <div class="bubble">${htmlContent}</div>
+      <div class="msg-time">${now}</div>
+    </div>`;
+
+        messages.appendChild(row);
+        messages.scrollTop = messages.scrollHeight; // Auto-scroll to latest
+
+        // Update message counter in sidebar
+        STATE.msgCount++;
+        document.getElementById('msgCount').textContent = STATE.msgCount;
+      }
+
+      /** Show a typing indicator while the bot "thinks" */
+      function showTyping() {
+        const messages = document.getElementById('chatMessages');
+        const typingEl = document.createElement('div');
+        typingEl.className = 'msg-row bot';
+        typingEl.id = 'typingIndicator';
+        typingEl.innerHTML = `
+    <div class="msg-avatar bot-av">🤖</div>
+    <div class="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>`;
+        messages.appendChild(typingEl);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      /** Remove the typing indicator */
+      function removeTyping() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+      }
+
+      /* ===========================================================
+         MAIN SEND MESSAGE FUNCTION
+         Called by the send button or Enter key.
+      =========================================================== */
+      function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Display user's message
+        addMessage('user', `<p>${escapeHtml(text)}</p>`);
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Show typing animation, then reply after a realistic delay
+        showTyping();
+        STATE.typingTimer = setTimeout(() => {
+          removeTyping();
+          const response = getAIResponse(text);
+          addMessage('bot', response);
+          updateSuggestions(text);
+        }, 900 + Math.random() * 600); // 0.9s–1.5s delay feels natural
+      }
+
+      /** Inject a preset text into the input and send it (used by quick-action buttons) */
+      function inject(text) {
+        document.getElementById('chatInput').value = text;
+        sendMessage();
+      }
+
+      /** Handle Enter key in textarea (Shift+Enter = new line) */
+      function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      }
+
+      /** Auto-resize textarea height as user types */
+      function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+      }
+
+      /** Basic HTML escaping to prevent XSS from user input */
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      /* ===========================================================
+         SUGGESTION CHIPS
+         Update the quick-reply chips based on what was just typed
+      =========================================================== */
+      const SUGGESTIONS_MAP = {
+        default: ['Check my balance', 'Transfer money', 'Mini statement', 'Loan information', 'Find ATM', 'Report fraud'],
+        balance: ['Transfer money', 'Mini statement', 'Block my card', 'Interest rates'],
+        loan: ['EMI Calculator', 'Apply for loan', 'Check balance', 'Interest rates'],
+        error: ['Escalate to IT', 'System status', 'Customer lookup', 'Generate report'],
+      };
+
+      function updateSuggestions(text) {
+        let chips = SUGGESTIONS_MAP.default;
+        if (text.match(/balance|funds/i)) chips = SUGGESTIONS_MAP.balance;
+        if (text.match(/loan|emi|borrow/i)) chips = SUGGESTIONS_MAP.loan;
+        if (text.match(/error|problem|issue/i)) chips = SUGGESTIONS_MAP.error;
+
+        document.getElementById('suggestionsBar').innerHTML =
+          chips.map(c => `<button class="suggestion-chip" onclick="inject('${c}')">${c}</button>`).join('');
+      }
+
+      /* ===========================================================
+         ROLE MANAGEMENT
+      =========================================================== */
+
+      /** Switch active role and update sidebar / quick actions */
+      function switchRole(role, btn) {
+        STATE.role = role;
+
+        // Update all sidebar role buttons
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+        if (btn) btn.classList.add('selected');
+
+        // Update role label in stats box
+        const labels = { customer: 'Customer', employee: 'Employee', admin: 'Admin' };
+        document.getElementById('roleLabel').textContent = labels[role];
+        document.getElementById('roleBadge').textContent =
+          role === 'customer' ? '👤 Customer' : role === 'employee' ? '🏦 Employee' : '🛡️ Admin';
+
+        // Show error log panel for staff roles
+        document.getElementById('errorLogCard').style.display =
+          (role === 'employee' || role === 'admin') ? 'block' : 'none';
+
+        // Rebuild quick actions for the new role
+        buildQuickActions(role);
+
+        // Announce role switch in chat
+        addMessage('bot',
+          `<p>Role switched to <span class="pill blue">${labels[role].toUpperCase()}</span>.
+    ${role === 'employee' ? 'Employee tools are now enabled.' : role === 'admin' ? 'Admin controls are now active.' : 'Welcome back!'}</p>`
+        );
+
+        updateSuggestions('');
+      }
+
+      /** Build quick-action buttons appropriate for the current role */
+      function buildQuickActions(role) {
+        const actions = {
+          customer: [
+            { icon: '💳', label: 'Check Balance', text: 'Check my balance' },
+            { icon: '💸', label: 'Transfer Funds', text: 'Transfer money' },
+            { icon: '📋', label: 'Mini Statement', text: 'Show my statement' },
+            { icon: '🏠', label: 'Loan Info', text: 'Loan information' },
+            { icon: '🔴', label: 'Block Card', text: 'Block my card' },
+            { icon: '🚨', label: 'Report Fraud', text: 'Report fraud' },
+          ],
+          employee: [
+            { icon: '🔍', label: 'Customer Lookup', text: 'Lookup customer account' },
+            { icon: '⚠️', label: 'View Errors', text: 'Show system errors' },
+            { icon: '📊', label: 'Daily Report', text: 'Generate report' },
+            { icon: '🚩', label: 'Fraud Alerts', text: 'Fraud alerts' },
+          ],
+          admin: [
+            { icon: '📊', label: 'Analytics', text: 'Daily report' },
+            { icon: '🖥', label: 'System Status', text: 'System status' },
+            { icon: '⚠️', label: 'All Errors', text: 'Show all errors' },
+            { icon: '🔍', label: 'Customer Lookup', text: 'Customer lookup' },
+          ],
+        };
+
+        document.getElementById('quickActionsContainer').innerHTML =
+          (actions[role] || actions.customer).map(a =>
+            `<button class="qa-btn" onclick="inject('${a.text}')">${a.icon} ${a.label}</button>`
+          ).join('');
+      }
+
+      /* ===========================================================
+         MODAL HELPERS
+      =========================================================== */
+      function openModal(id) { document.getElementById(id).classList.add('open'); }
+      function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+      /** Validate and apply the role selected in the modal */
+      function verifyAndSwitch() {
+        const userId = document.getElementById('modalUserId').value.trim();
+        const pin = document.getElementById('modalPin').value.trim();
+        const role = document.getElementById('modalRole').value;
+
+        if (!userId || pin.length < 4) {
+          showAlert('Please enter a valid ID and PIN (min 4 digits).', 'error');
+          return;
+        }
+
+        closeModal('roleModal');
+
+        // Simulate authentication — in production, call a secure backend API
+        const roleBtns = document.querySelectorAll('.role-btn');
+        const idx = role === 'customer' ? 0 : role === 'employee' ? 1 : 2;
+        switchRole(role, roleBtns[idx]);
+
+        showAlert(`✅ Verified! Logged in as ${role} (${userId}).`, 'success');
+      }
+
+      /* ===========================================================
+         ALERT BANNER
+      =========================================================== */
+      function showAlert(msg, type = 'success') {
+        const banner = document.getElementById('alertBanner');
+        banner.textContent = msg;
+        banner.className = type;
+        banner.style.display = 'block';
+
+        // Auto-hide after 3.5 seconds
+        setTimeout(() => { banner.style.display = 'none'; }, 3500);
+      }
+
+      /* ===========================================================
+         ERROR LOGGER (for employee / admin panel)
+      =========================================================== */
+      function logError(code, message) {
+        const entry = { code, message, time: new Date().toLocaleTimeString() };
+        STATE.errors.push(entry);
+
+        // Rebuild the error log panel
+        const panel = document.getElementById('errorLog');
+        panel.innerHTML = STATE.errors.slice(-5).reverse().map(e =>
+          `<div style="border-bottom:1px solid var(--border);padding:4px 0;">
+       <strong style="color:var(--error);">${e.code}</strong><br>
+       ${e.message}<br>
+       <span style="color:var(--text-muted);font-size:0.7rem;">${e.time}</span>
+     </div>`
+        ).join('');
+      }
+
+      /* ===========================================================
+         EXPORT CHAT
+      =========================================================== */
+      function exportChat() {
+        const msgs = document.getElementById('chatMessages');
+        const text = msgs.innerText;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `BankBot_Chat_${Date.now()}.txt`;
+        a.click();
+        showAlert('Chat exported successfully!', 'success');
+      }
+
+      /* ===========================================================
+         CLEAR CHAT
+      =========================================================== */
+      function clearChat() {
+        if (!confirm('Clear entire chat history?')) return;
+        document.getElementById('chatMessages').innerHTML = '';
+        STATE.msgCount = 0;
+        document.getElementById('msgCount').textContent = '0';
+        init(); // Re-show welcome message
+      }
+
+      /* ===========================================================
+         SHOW HELP
+      =========================================================== */
+      function showHelp() { inject('Show me what you can do'); }
+
+      /* ===========================================================
+         VOICE INPUT (Web Speech API)
+         Listens to the microphone and fills the chat input
+      =========================================================== */
+      function startVoice() {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+          showAlert('Voice input not supported in this browser. Try Chrome.', 'warning');
+          return;
+        }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-IN';
+        recognition.start();
+        showAlert('🎤 Listening… speak now.', 'warning');
+
+        recognition.onresult = (e) => {
+          const transcript = e.results[0][0].transcript;
+          document.getElementById('chatInput').value = transcript;
+          showAlert(`Heard: "${transcript}"`, 'success');
+        };
+
+        recognition.onerror = () => showAlert('Could not capture voice. Please try again.', 'error');
+      }
+
+      /* ===========================================================
+         SESSION TIMER (updates every minute)
+      =========================================================== */
+      setInterval(() => {
+        const mins = Math.floor((Date.now() - STATE.sessionStart) / 60000);
+        document.getElementById('sessionTime').textContent = `${mins}m`;
+      }, 60000);
+
+      /* ===========================================================
+         VIEW SWITCHER (nav buttons — placeholder in this demo)
+      =========================================================== */
+      function setView(view) {
+        document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+        if (event && event.target) event.target.classList.add('active');
+
+        // Hide neural panel by default
+        document.getElementById('neuralPanel').style.display = 'none';
+
+        if (view === 'neural') {
+          // Show neural schema panel and init the canvas
+          document.getElementById('neuralPanel').style.display = 'block';
+          initNeuralCanvas();
+        } else if (view !== 'chat') {
+          showAlert(`${view.charAt(0).toUpperCase() + view.slice(1)} module coming soon!`, 'warning');
+        }
+      }
+
+      /* ===========================================================
+         NEURAL NETWORK CANVAS — Animated schema visualization
+         6 layers: Input → Tokenize → Intent → Knowledge → Role → Output
+      =========================================================== */
+
+      const N_LAYERS = [
+        { count: 3, color: '#3b82f6', info: '📝 <b>Input Layer</b> — Raw text received: <b>"Check my balance"</b>' },
+        { count: 5, color: '#6366f1', info: '✂️ <b>Tokenize Layer</b> — Split into tokens: ["check","balance"] — stop words removed' },
+        { count: 6, color: '#8b5cf6', info: '🎯 <b>Intent Layer</b> — Keyword "balance" matched → Intent: <b>ACCOUNT_BALANCE</b> (94%)' },
+        { count: 5, color: '#a855f7', info: '📚 <b>Knowledge Base</b> — buildBalanceReply() selected with demo account data' },
+        { count: 4, color: '#ec4899', info: '🔐 <b>Role Filter</b> — Role: Customer → personal balance view returned' },
+        { count: 2, color: '#16a34a', info: '💬 <b>Output Layer</b> — Formatted HTML bubble rendered in chat ✅' },
+      ];
+
+      let nCanvas, nCtx, nNodes = [], nAnimating = false;
+
+      function initNeuralCanvas() {
+        nCanvas = document.getElementById('neuralCanvas');
+        if (!nCanvas) return;
+        nCtx = nCanvas.getContext('2d');
+        // Set actual pixel width from rendered size
+        nCanvas.width  = nCanvas.offsetWidth  || 800;
+        nCanvas.height = 300;
+        buildNNodes();
+        drawNeural(-1, 0);
+      }
+
+      function buildNNodes() {
+        const W = nCanvas.width, H = nCanvas.height;
+        const PAD = 28, R = 9;
+        nNodes = N_LAYERS.map((layer, li) => {
+          const x = PAD + (li / (N_LAYERS.length - 1)) * (W - PAD * 2);
+          const spacing = (H - PAD * 2) / Math.max(layer.count - 1, 1);
+          return Array.from({ length: layer.count }, (_, i) => ({
+            x, y: PAD + i * spacing, color: layer.color
+          }));
+        });
+      }
+
+      function drawNeural(activeLayer, edgeProgress) {
+        if (!nCtx) return;
+        const W = nCanvas.width, H = nCanvas.height;
+        nCtx.clearRect(0, 0, W, H);
+
+        // Draw edges
+        for (let l = 0; l < N_LAYERS.length - 1; l++) {
+          nNodes[l].forEach(from => {
+            nNodes[l + 1].forEach(to => {
+              nCtx.beginPath();
+              nCtx.moveTo(from.x, from.y);
+              if (l === activeLayer) {
+                // Dim full edge
+                nCtx.strokeStyle = 'rgba(255,255,255,0.04)';
+                nCtx.lineWidth = 0.7;
+                nCtx.lineTo(to.x, to.y);
+                nCtx.stroke();
+                // Bright partial edge
+                const px = from.x + (to.x - from.x) * edgeProgress;
+                const py = from.y + (to.y - from.y) * edgeProgress;
+                nCtx.beginPath();
+                nCtx.moveTo(from.x, from.y);
+                nCtx.lineTo(px, py);
+                nCtx.strokeStyle = '#f0a500';
+                nCtx.lineWidth = 1.8;
+                nCtx.shadowColor = '#f0a500';
+                nCtx.shadowBlur  = 8;
+                nCtx.stroke();
+                nCtx.shadowBlur = 0;
+                // Signal dot
+                nCtx.beginPath();
+                nCtx.arc(px, py, 3.5, 0, Math.PI * 2);
+                nCtx.fillStyle = '#fff';
+                nCtx.fill();
+              } else {
+                nCtx.strokeStyle = l < activeLayer ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)';
+                nCtx.lineWidth = 0.6;
+                nCtx.lineTo(to.x, to.y);
+                nCtx.stroke();
+              }
+            });
+          });
+        }
+
+        // Draw nodes
+        nNodes.forEach((layer, li) => {
+          layer.forEach(node => {
+            nCtx.beginPath();
+            nCtx.arc(node.x, node.y, 9, 0, Math.PI * 2);
+            if (li <= activeLayer) {
+              nCtx.fillStyle = node.color;
+              nCtx.shadowColor = node.color;
+              nCtx.shadowBlur  = 14;
+            } else {
+              nCtx.fillStyle = 'rgba(255,255,255,0.05)';
+              nCtx.shadowBlur = 0;
+            }
+            nCtx.fill();
+            nCtx.shadowBlur = 0;
+            nCtx.beginPath();
+            nCtx.arc(node.x, node.y, 9, 0, Math.PI * 2);
+            nCtx.strokeStyle = li <= activeLayer ? node.color : 'rgba(255,255,255,0.08)';
+            nCtx.lineWidth   = li <= activeLayer ? 2 : 1;
+            nCtx.stroke();
+          });
+        });
+      }
+
+      function runNeural() {
+        if (nAnimating) return;
+        nAnimating = true;
+        const btn = document.getElementById('neuralSimBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Processing...';
+        document.getElementById('neuralInfo').innerHTML = '⚡ Signal entering the network...';
+
+        let layer = 0, progress = 0;
+
+        function step() {
+          progress += 0.022;
+          if (progress >= 1) {
+            progress = 0;
+            drawNeural(layer, 1);
+            document.getElementById('neuralInfo').innerHTML = N_LAYERS[layer].info;
+            layer++;
+            if (layer >= N_LAYERS.length) {
+              nAnimating = false;
+              btn.disabled = false;
+              btn.textContent = '▶ Simulate Again';
+              return;
+            }
+          }
+          drawNeural(layer - 1, progress);
+          requestAnimationFrame(step);
+        }
+        drawNeural(-1, 0);
+        setTimeout(() => requestAnimationFrame(step), 200);
+      }
+
+      /* ===========================================================
+         INIT — run on page load
+      =========================================================== */
+      function init() {
+        buildQuickActions('customer');
+        updateSuggestions('');
+
+        // Welcome message
+        setTimeout(() => {
+          addMessage('bot', greetUser());
+        }, 400);
+      }
+
+      // Start everything
+      init();
+    </script>
+  </body>
+
+</html>
